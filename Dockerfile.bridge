@@ -1,0 +1,33 @@
+# Build Stage for Go
+FROM golang:1.21-alpine AS go-builder
+WORKDIR /app
+COPY . .
+RUN go build -o fortune main.go
+
+# Final Stage
+FROM python:3.11-slim
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Go binary from builder
+COPY --from=go-builder /app/fortune /app/fortune
+
+# Copy project files
+COPY . .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r bridge/backend/requirements.txt
+
+# Set environment variables
+ENV BRIDGE_API_KEY=your-secret-api-key
+ENV PORT=8000
+
+# Expose the API port
+EXPOSE 8000
+
+# Start the bridge API server
+CMD ["uvicorn", "bridge.backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
