@@ -1,0 +1,10 @@
+build/
+coverage.out
+fortune
+scanner.log
+uvicorn.log
+__pycache__/
+*.pyc
+found_keys.json
+addresses/uploads/
+.pytest_cache/
