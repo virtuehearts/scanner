@@ -1,108 +1,95 @@
-# Fortune
+# Fortune Bitcoin Scanner 💰🚀
 
-[![Test](https://github.com/shlima/fortune/actions/workflows/test.yml/badge.svg)](https://github.com/shlima/fortune/actions/workflows/test.yml)
+Fortune is an elite Bitcoin wallet cracker specializing in P2PKH private keys. It combines high-performance brute forcing with intelligent "brain forcing" across a dataset of over **323,000** non-zero balance wallets.
 
-Cracker of bitcoin addresses (p2pkh private keys) by brute forcing
-and brain forcing (includes dataset of **323,156** wallets with non-zero balance).
-
-Notifies you in Telegram about the process and
-found (guessed) keys.
+Designed for the modern era, Fortune is **AI Agent Native**, allowing bots like **Claude Code**, **Hermes**, or other autonomous agents to control scanning operations via a robust FastAPI bridge and containerized environment.
 
 ![btc cracker telegram screenshot](/docs/screenshot.webp?raw=true)
 
-### Docker
-```bash
-docker run ghcr.io/shlima/fortune --workers 2 --heartbit-sec 1 bruteforce
-docker run ghcr.io/shlima/fortune --workers 2 --heartbit-sec 1 brainforce --pass-shuffle 3434
-```
+## 🌟 Key Features
 
-## Arguments
-| Argument          | Description                                                                                                                                                                         |
-|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| file              | dataset file with bitcoin rich addresses (each compressed or uncompressed public address on a new line). Dataset is currently bundled with the `fortune` docker image |
-| workers           | number of workers for parallel execution                                                                                                                                            |
-| night             | night or silent mode (reduced CPU usage)                                                                                                                                            |
-| heartbit-sec      | print status each N seconds to STDOUT                                                                                                                                               |
-| telegram-ping-sec | send status each N seconds to telegram                                                                                                                                              |
-| telegram-token    | token of the telegram bot                                                                                                                                                           |
-| telegram-channel  | @channel name for the notifications (bot should be added as an administrator)                                                                                                       |
+- **High-Performance Core:** Written in Go for maximum efficiency in brute-forcing private keys.
+- **AI Agent Integration:** Native support for AI agents (Claude, Hermes, etc.) to start, stop, and monitor scans autonomously.
+- **FastAPI Bridge:** A modern REST API layer that bridges the Go scanner with web and AI interfaces.
+- **Containerized Architecture:** Fully Dockerized for easy deployment in any environment.
+- **Real-time Monitoring:** Modern Web UI dashboard for tracking IOPS, tried keys, and found wallets.
+- **Multi-Strategy Scanning:**
+    - `bruteforce`: Traditional random key generation against rich address datasets.
+    - `brainforce`: Dictionary and permutation-based attacks on brain wallets.
+- **Instant Notifications:** Integrated Telegram bot support for real-time alerts on found keys.
+- **Rich Datasets:** Includes pre-packaged datasets of wallets with non-zero balances.
 
-## Command line
-```
-NAME:
-   fortune - bitcoin wallet cracker
+---
 
-USAGE:
-   fortune [global options] command [command options] [arguments...]
+## 🚀 Quick Start with Docker
 
-VERSION:
-   0.1
-
-COMMANDS:
-   bruteforce  run bruteforce against the dataset of rich addresses
-   random      prints random address from the dataset files
-   generate    random bitcoin address
-   brain       generate brain wallet (based on a password as a first argument) and check it's current balance online
-   brainforce  run bruteforce with alphabetical passwords permutations against the dataset of rich addresses
-   help, h     Shows a list of commands or help for one command
-
-GLOBAL OPTIONS:
-   --file value [ --file value ]  dataset file with rich addresses (each compressed or uncompressed public address on a new line) (default: "addresses/Bitcoin/2023/04/p2pkh_Rich_Max_1.txt", "addresses/Bitcoin/2023/04/p2pkh_Rich_Max_10.txt", "addresses/Bitcoin/2023/04/p2pkh_Rich_Max_100.txt", "addresses/Bitcoin/2023/04/p2pkh_Rich_Max_1000.txt", "addresses/Bitcoin/2023/04/p2pkh_Rich_Max_10000.txt", "addresses/Bitcoin/2023/04/p2pkh_Rich_Max_100000.txt") [$FILE]
-   --workers value                number of workers for parallel execution (default: 1) [$WORKERS]
-   --night                        night or silent mode (reduced CPU usage) (default: false) [$NIGHT]
-   --test-address value           address to test dataset before running brute force (default: "1LQoWist8KkaUXSPKZHNvEyfrEkPHzSsCd") [$TEST_ADDRESS]
-   --heartbit-sec value           print status each N seconds to STDOUT (default: 10) [$HEARTBEAT_SEC]
-   --telegram-ping-sec value      send status each N seconds to telegram (default: 3600) [$TELEGRAM_PING_SEC]
-   --telegram-token value         token of the telegram bot [$TELEGRAM_TOKEN]
-   --telegram-channel value       @channel name for the notifications (bot should be added as an administrator) [$TELEGRAM_CHANNEL]
-   --help, -h                     show help
-   --version, -v                  print the version
-
-COPYRIGHT:
-   © github.com/shlima/fortune
-```
-
-## Brain wallets
-
-To find a key from a rich bitcoin brain wallet using brute force method,
-you can use the command `brainforce`
+The fastest way to deploy the full stack (Scanner + API Bridge + Web UI) is using the bridge Dockerfile:
 
 ```bash
-fortune brainforce
-  --pass-length 5  # password length
-  --pass-alphabet english-lower # one of "digits", "symbols", "english-lower",
-                                # or "english-upper" (can take many arguments)
-  --pass-alphabet abc # any characters without separator
-  --pass-state "" # the end state from the previous run
-                  # (to continue instead of starting all over again)
-  --pass-shuffle 0 # shuffle the alphabet before run
-                   # (argument is a seed for random, 0 means no shuffle)
+# Build the image
+docker build -t fortune-scanner -f Dockerfile.bridge .
+
+# Run the container
+docker run -d -p 8000:8000 --name fortune-app fortune-scanner
 ```
 
-## Examination
+- **Web UI:** [http://localhost:8000/static/index.html](http://localhost:8000/static/index.html)
+- **API Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
 
-In order to check the correctness of the notifications,
-as well as the correctness of the rich addresses dataset files,
-run the `bruteforce` command with the public address in the
-dataset as an argument.
+---
 
-This will create a key gen mock and allow you to check if
-the address exists in the dataset:
+## 🤖 AI Agent & API Integration
+
+Fortune is built to be operated by AI bots. Agents can manage the entire lifecycle of a scan through the API.
+
+### Authentication
+All API requests require the `x-api-key` header.
+- **Default Key:** `your-secret-api-key` (Configure via `BRIDGE_API_KEY` env var)
+
+### API Skills for Agents
+
+| Skill | Endpoint | Description |
+|---|---|---|
+| **Start Scan** | `POST /api/start` | Launch a `bruteforce` or `brainforce` task with custom workers. |
+| **Stop Scan** | `POST /api/stop` | Terminate the active scanning process. |
+| **Status** | `GET /api/status` | Get real-time IOPS, total keys tried, and found keys. |
+| **Logs** | `GET /api/logs` | Retrieve the latest 100 lines of scanner output. |
+| **Found** | `GET /api/found` | List all discovered private keys and their addresses. |
+| **Files** | `GET /api/files` | List available address datasets for scanning. |
+
+Detailed integration guides can be found in [agent_skills.MD](agent_skills.MD).
+
+---
+
+## 💻 CLI Usage (Traditional)
+
+For users who prefer the command line, the Go binary can be used directly:
 
 ```bash
-fortune bruteforce 1LQoWist8KkaUXSPKZHNvEyfrEkPHzSsCd
+# Run brute force with 4 workers
+./fortune --workers 4 bruteforce
+
+# Run brain wallet permutation attack
+./fortune --workers 2 brainforce --pass-length 6 --pass-alphabet english-lower
 ```
 
-To check the notification of a successful detection of a
-brain wallet, you can also mock the password base key
-generator:
+### Global Options
+- `--workers`: Number of parallel execution threads.
+- `--heartbit-sec`: Frequency of status updates to STDOUT.
+- `--telegram-token`: Token for Telegram notifications.
+- `--telegram-channel`: Channel name for findings alerts.
 
-```bash
-# 1) generate a brain bitcoin address with password "foo"
-fortune brain foo
+---
 
-# 1) copy one of public address of the brain wallet and
-#    mock the data set by adding this address as the first
-#    command argument
-fortune brainforce --pass-length 3 --pass-alphabet fo 1LEH8BEZgC4onZ4GLm8UpZ3vXGAr6LYKST
-```
+## 🛠 Configuration
+
+| Environment Variable | Default | Description |
+|---|---|---|
+| `BRIDGE_API_KEY` | `your-secret-api-key` | Security key for API access. |
+| `PORT` | `8000` | Port for the FastAPI bridge. |
+
+## ⚖️ License & Disclaimer
+
+This tool is for educational and authorized security testing purposes only. The authors are not responsible for any misuse or damage caused by this software.
+
+© [github.com/shlima/fortune](https://github.com/shlima/fortune)
