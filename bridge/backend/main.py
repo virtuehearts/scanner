@@ -18,6 +18,9 @@ class ScannerConfig(BaseModel):
     telegram_token: Optional[str] = None
     telegram_channel: Optional[str] = None
     night: Optional[bool] = False
+    gpu: Optional[bool] = False
+    bloom: Optional[bool] = False
+    batch_size: Optional[int] = 1024
     args: Optional[List[str]] = []
 
 # Serve static files for the UI
@@ -50,6 +53,15 @@ async def start_scanner(config: ScannerConfig, api_key: str = Depends(verify_api
 
     if config.night:
         args += ["--night"]
+
+    if config.gpu:
+        args += ["--gpu"]
+
+    if config.bloom:
+        args += ["--bloom"]
+
+    if config.batch_size:
+        args += ["--batch-size", str(config.batch_size)]
 
     # Now add the command
     args += [config.command]

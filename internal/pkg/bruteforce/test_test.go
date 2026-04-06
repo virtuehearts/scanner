@@ -22,7 +22,7 @@ func MustSetup(t *testing.T, index datum.Index) *Setup {
 	return &Setup{
 		ctrl:     ctrl,
 		gen:      gen,
-		Executor: New(index, gen, 2),
+		Executor: New(datum.NewFilteredIndex(index, nil), gen, 2),
 	}
 }
 

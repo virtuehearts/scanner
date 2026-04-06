@@ -37,6 +37,27 @@ var FlagNightMode = &cli.BoolFlag{
 	Value:   false,
 }
 
+var FlagGPU = &cli.BoolFlag{
+	Name:    "gpu",
+	Usage:   "enable GPU acceleration using OpenCL",
+	EnvVars: []string{"GPU"},
+	Value:   false,
+}
+
+var FlagBloom = &cli.BoolFlag{
+	Name:    "bloom",
+	Usage:   "enable Bloom filter for fast address lookup",
+	EnvVars: []string{"BLOOM"},
+	Value:   false,
+}
+
+var FlagBatchSize = &cli.IntFlag{
+	Name:    "batch-size",
+	Usage:   "size of key generation batches (used with GPU)",
+	EnvVars: []string{"BATCH_SIZE"},
+	Value:   1024,
+}
+
 var FlagFiles = &cli.StringSliceFlag{
 	Name:    "file",
 	Usage:   "dataset file with rich addresses (each compressed or uncompressed public address on a new line)",

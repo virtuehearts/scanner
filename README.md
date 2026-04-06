@@ -9,6 +9,8 @@ Designed for the modern era, Fortune is **AI Agent Native**, allowing bots like 
 ## 🌟 Key Features
 
 - **High-Performance Core:** Written in Go for maximum efficiency in brute-forcing private keys.
+- **GPU Acceleration:** Optional OpenCL-based GPU acceleration for NVIDIA RTX and other compatible hardware.
+- **Bloom Filter Support:** Ultra-fast address lookup using memory-efficient Bloom filters.
 - **AI Agent Integration:** Native support for AI agents (Claude, Hermes, etc.) to start, stop, and monitor scans autonomously.
 - **FastAPI Bridge:** A modern REST API layer that bridges the Go scanner with web and AI interfaces.
 - **Containerized Architecture:** Fully Dockerized for easy deployment in any environment.
@@ -75,9 +77,18 @@ For users who prefer the command line, the Go binary can be used directly:
 
 ### Global Options
 - `--workers`: Number of parallel execution threads.
+- `--gpu`: Enable GPU acceleration using OpenCL.
+- `--bloom`: Enable Bloom filter for fast address lookup.
+- `--batch-size`: Size of key generation batches (default 1024, recommended for GPU).
 - `--heartbit-sec`: Frequency of status updates to STDOUT.
 - `--telegram-token`: Token for Telegram notifications.
 - `--telegram-channel`: Channel name for findings alerts.
+
+### High-Performance Usage (NVIDIA RTX)
+To reach millions of operations per second, use the GPU and Bloom filter:
+```bash
+./fortune --gpu --bloom --batch-size 4096 --workers 8 bruteforce
+```
 
 ---
 
