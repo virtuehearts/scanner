@@ -5,6 +5,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func NewKeyGen(c *cli.Context) *key.Generator {
+func NewKeyGen(c *cli.Context) key.IGen {
+	if c.Bool(FlagGPU.Name) {
+		return key.NewGPU()
+	}
+
 	return key.New()
 }

@@ -18,6 +18,9 @@ Launch a new scanning process with specific parameters.
 {
   "command": "bruteforce", // or "brainforce"
   "workers": 4,
+  "gpu": true,
+  "bloom": true,
+  "batch_size": 4096,
   "files": ["addresses/Bitcoin/2023/04/p2pkh_Rich_Max_1.txt"],
   "night": false,
   "telegram_token": "optional_token",

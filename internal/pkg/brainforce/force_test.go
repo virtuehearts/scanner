@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shlima/fortune/internal/pkg/datum"
 	"github.com/shlima/fortune/internal/pkg/key"
 	"github.com/shlima/fortune/internal/pkg/pass"
 	"github.com/stretchr/testify/require"
@@ -42,9 +43,9 @@ func TestForce_Generate(t *testing.T) {
 
 		switch {
 		case time.Now().Second()%2 == 0:
-			setup.index[chain.Compressed] = true
+			setup.SetIndex(datum.NewFilteredIndex(datum.Index{chain.Compressed: true}, nil))
 		default:
-			setup.index[chain.Uncompressed] = true
+			setup.SetIndex(datum.NewFilteredIndex(datum.Index{chain.Uncompressed: true}, nil))
 		}
 
 		first := setup.pass.EXPECT().

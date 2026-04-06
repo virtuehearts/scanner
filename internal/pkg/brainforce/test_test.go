@@ -24,6 +24,6 @@ func MustSetup(t *testing.T) *Setup {
 		ctrl:  ctrl,
 		pass:  pass,
 		key:   key,
-		Force: New(make(datum.Index), key, pass, 2),
+		Force: New(datum.NewFilteredIndex(make(datum.Index), nil), key, pass, 2),
 	}
 }

@@ -13,18 +13,21 @@ import (
 
 func Bruteforce(c *cli.Context) error {
 	force := bruteforce.New(
-		NewIndex(c),
-		NewKeyGen(c).SetTesting(c.Args().First()),
+		NewIndex(c).SetTesting(c.Args().First()),
+		NewKeyGen(c),
 		c.Int(FlagWorkers.Name),
 	)
 
 	force.SetNightMode(c.Bool(FlagNightMode.Name))
+	force.SetBatchSize(c.Int(FlagBatchSize.Name))
 	return terror(c, force)
 }
 
 func terror(c *cli.Context, force *bruteforce.Executor) error {
 	logger.Info(fmt.Sprintf("loaded: %d addresses", force.DataLength()))
 	logger.Info(fmt.Sprintf("workers count: %d", force.WorkersCount()))
+	logger.Info(fmt.Sprintf("gpu enabled: %v", c.Bool(FlagGPU.Name)))
+	logger.Info(fmt.Sprintf("bloom filter: %v", c.Bool(FlagBloom.Name)))
 	logger.Info(fmt.Sprintf("test passed: %v", force.Get(c.String(FlagTestAddress.Name))))
 	logger.Info(fmt.Sprintf("telegram enabled: %v", NewTelegram(c).IsReal()))
 

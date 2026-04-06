@@ -12,27 +12,35 @@ import (
 )
 
 type Executor struct {
-	index   datum.Index
-	gen     key.IGen
-	workers int
-	sleep   time.Duration
-	ops     uint64
-	prev    uint64
-	wg      *sync.WaitGroup
-	t0      time.Time
-	mx      *sync.Mutex
-	closes  []CloseCh
+	index     *datum.FilteredIndex
+	gen       key.IGen
+	workers   int
+	sleep     time.Duration
+	ops       uint64
+	prev      uint64
+	wg        *sync.WaitGroup
+	t0        time.Time
+	mx        *sync.Mutex
+	closes    []CloseCh
+	batchSize int
 }
 
-func New(index datum.Index, gen key.IGen, workers int) *Executor {
+func New(index *datum.FilteredIndex, gen key.IGen, workers int) *Executor {
 	return &Executor{
-		index:   index,
-		gen:     gen,
-		workers: workers,
-		wg:      new(sync.WaitGroup),
-		closes:  make([]CloseCh, 0),
-		t0:      time.Now(),
-		mx:      new(sync.Mutex),
+		index:     index,
+		gen:       gen,
+		workers:   workers,
+		wg:        new(sync.WaitGroup),
+		closes:    make([]CloseCh, 0),
+		t0:        time.Now(),
+		mx:        new(sync.Mutex),
+		batchSize: 1,
+	}
+}
+
+func (e *Executor) SetBatchSize(size int) {
+	if size > 0 {
+		e.batchSize = size
 	}
 }
 
@@ -51,7 +59,7 @@ func (e *Executor) SetNightMode(on bool) {
 }
 
 // SetIndex redefined the index
-func (e *Executor) SetIndex(index datum.Index) {
+func (e *Executor) SetIndex(index *datum.FilteredIndex) {
 	e.mx.Lock()
 	defer e.mx.Unlock()
 
@@ -60,7 +68,7 @@ func (e *Executor) SetIndex(index datum.Index) {
 
 // DataLength returns index items counter
 func (e *Executor) DataLength() int {
-	return len(e.index)
+	return e.index.Len()
 }
 
 func (e *Executor) WorkersCount() int {
@@ -69,7 +77,7 @@ func (e *Executor) WorkersCount() int {
 
 // Get tests the index with the passed address
 func (e *Executor) Get(address string) bool {
-	return e.index[address]
+	return e.index.Contains(address)
 }
 
 func (e *Executor) Run(fn FoundFn) {
@@ -108,8 +116,11 @@ func (e *Executor) run(close CloseCh, foundFn FoundFn) {
 			e.wg.Done()
 			return
 		default:
-			e.next(foundFn)
-			e.addOpts(1)
+			if e.batchSize > 1 {
+				e.nextBatch(foundFn)
+			} else {
+				e.next(foundFn)
+			}
 			time.Sleep(e.sleep)
 		}
 	}
@@ -121,11 +132,44 @@ func (e *Executor) next(foundFn FoundFn) {
 		panic(fmt.Errorf("failed to generate: %w", err))
 	}
 
-	if e.index[pair.Compressed] || e.index[pair.Uncompressed] {
+	if e.index.Contains(pair.Compressed) || e.index.Contains(pair.Uncompressed) {
 		e.mx.Lock()
 		foundFn(pair)
 		e.mx.Unlock()
 	}
+	e.addOpts(1)
+}
+
+func (e *Executor) nextBatch(foundFn FoundFn) {
+	var pairs []key.KeyChain
+	var err error
+
+	if gpuGen, ok := e.gen.(interface {
+		GenerateBatch(int) ([]key.KeyChain, error)
+	}); ok {
+		pairs, err = gpuGen.GenerateBatch(e.batchSize)
+	} else {
+		pairs = make([]key.KeyChain, e.batchSize)
+		for i := 0; i < e.batchSize; i++ {
+			pairs[i], err = e.gen.Generate()
+			if err != nil {
+				break
+			}
+		}
+	}
+
+	if err != nil {
+		panic(fmt.Errorf("failed to generate batch: %w", err))
+	}
+
+	for _, pair := range pairs {
+		if e.index.Contains(pair.Compressed) || e.index.Contains(pair.Uncompressed) {
+			e.mx.Lock()
+			foundFn(pair)
+			e.mx.Unlock()
+		}
+	}
+	e.addOpts(uint64(len(pairs)))
 }
 
 func (e *Executor) Heartbeat() *HeartBit {

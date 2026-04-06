@@ -68,7 +68,7 @@ func TestExecutor_RunAsync(t *testing.T) {
 			Compressed: "Compressed",
 		}
 
-		setup.SetIndex(datum.Index{chain.Compressed: true})
+		setup.SetIndex(datum.NewFilteredIndex(datum.Index{chain.Compressed: true}, nil))
 
 		setup.gen.EXPECT().
 			Generate().
@@ -95,7 +95,7 @@ func TestExecutor_RunAsync(t *testing.T) {
 			Uncompressed: "Uncompressed",
 		}
 
-		setup.SetIndex(datum.Index{chain.Uncompressed: true})
+		setup.SetIndex(datum.NewFilteredIndex(datum.Index{chain.Uncompressed: true}, nil))
 
 		setup.gen.EXPECT().
 			Generate().
