@@ -64,6 +64,13 @@ func main() {
 					cmd.FlagPassAlphabet,
 					cmd.FlagPassShuffle,
 				},
+			}, {
+				Name:   "wordlist",
+				Action: cmd.Wordlist,
+				Usage:  "run bruteforce with wordlist against the dataset of rich addresses",
+				Flags: []cli.Flag{
+					cmd.FlagPassFile,
+				},
 			},
 		},
 	}

@@ -99,3 +99,10 @@ var FlagPassShuffle = &cli.Int64Flag{
 	EnvVars: []string{"PASS_SHUFFLE"},
 	Value:   0,
 }
+
+var FlagPassFile = &cli.StringFlag{
+	Name:    "pass-file",
+	Usage:   "wordlist file with passphrases to check",
+	EnvVars: []string{"PASS_FILE"},
+	Value:   "",
+}

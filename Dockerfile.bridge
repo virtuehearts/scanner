@@ -23,7 +23,7 @@ COPY . .
 RUN pip install --no-cache-dir -r bridge/backend/requirements.txt
 
 # Set environment variables
-ENV BRIDGE_API_KEY=your-secret-api-key
+ENV BRIDGE_API_KEY=API434289898PASSED
 ENV PORT=8000
 
 # Expose the API port

@@ -4,7 +4,7 @@ from bridge.backend.main import app
 import os
 
 client = TestClient(app)
-API_KEY = "your-secret-api-key"
+API_KEY = "API434289898PASSED"
 
 def test_read_root():
     response = client.get("/")

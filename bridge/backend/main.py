@@ -12,7 +12,7 @@ pm = ProcessManager(executable_path="./fortune")
 
 # Models
 class ScannerConfig(BaseModel):
-    command: str  # e.g., "bruteforce", "brainforce"
+    command: str  # e.g., "bruteforce", "brainforce", "wordlist"
     workers: Optional[int] = 1
     files: Optional[List[str]] = None
     telegram_token: Optional[str] = None
@@ -21,6 +21,10 @@ class ScannerConfig(BaseModel):
     gpu: Optional[bool] = False
     bloom: Optional[bool] = False
     batch_size: Optional[int] = 1024
+    pass_length: Optional[int] = None
+    pass_alphabet: Optional[List[str]] = None
+    pass_shuffle: Optional[int] = None
+    pass_file: Optional[str] = None
     args: Optional[List[str]] = []
 
 # Serve static files for the UI
@@ -65,6 +69,18 @@ async def start_scanner(config: ScannerConfig, api_key: str = Depends(verify_api
 
     # Now add the command
     args += [config.command]
+
+    if config.command == "brainforce":
+        if config.pass_length:
+            args += ["--pass-length", str(config.pass_length)]
+        if config.pass_alphabet:
+            for a in config.pass_alphabet:
+                args += ["--pass-alphabet", a]
+        if config.pass_shuffle is not None:
+            args += ["--pass-shuffle", str(config.pass_shuffle)]
+    elif config.command == "wordlist":
+        if config.pass_file:
+            args += ["--pass-file", config.pass_file]
 
     if config.args:
         args += config.args
