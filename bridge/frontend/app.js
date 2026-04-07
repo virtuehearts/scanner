@@ -1,6 +1,28 @@
 let apiKey = localStorage.getItem('fortune_api_key') || '';
 document.getElementById('api-key-input').value = apiKey;
 
+if (apiKey) {
+    document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('auth-section').classList.remove('hidden');
+}
+
+function login() {
+    const user = document.getElementById('username-input').value;
+    const pass = document.getElementById('password-input').value;
+
+    if (user === 'admin' && pass === 'password1234#') {
+        apiKey = 'API434289898PASSED';
+        localStorage.setItem('fortune_api_key', apiKey);
+        document.getElementById('api-key-input').value = apiKey;
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('auth-section').classList.remove('hidden');
+        loadFiles();
+        updateStatus();
+    } else {
+        alert('Invalid credentials');
+    }
+}
+
 function saveApiKey() {
     apiKey = document.getElementById('api-key-input').value;
     localStorage.setItem('fortune_api_key', apiKey);
@@ -36,8 +58,13 @@ async function loadFiles() {
     const data = await apiCall('/api/files');
     if (data && data.files) {
         const container = document.getElementById('file-list');
+        const passFileSelect = document.getElementById('config-pass-file');
+
         container.innerHTML = '';
+        passFileSelect.innerHTML = '<option value="">Select a file...</option>';
+
         data.files.forEach(file => {
+            // Add to address files list
             const div = document.createElement('div');
             div.className = 'flex items-center space-x-2 p-1 hover:bg-slate-800 rounded';
             div.innerHTML = `
@@ -45,6 +72,12 @@ async function loadFiles() {
                 <span class="text-xs text-slate-300 truncate">${file}</span>
             `;
             container.appendChild(div);
+
+            // Add to wordlist dropdown
+            const opt = document.createElement('option');
+            opt.value = file;
+            opt.innerText = file;
+            passFileSelect.appendChild(opt);
         });
     }
 }
@@ -95,6 +128,8 @@ function renderFoundKeys(keys) {
 }
 
 async function loadLogs() {
+    if (!document.getElementById('config-poll').checked) return;
+
     const data = await apiCall('/api/logs');
     if (data && data.logs) {
         const container = document.getElementById('logs-container');
@@ -110,14 +145,27 @@ async function loadLogs() {
 
 async function startScanner() {
     const selectedFiles = Array.from(document.querySelectorAll('.addr-file-checkbox:checked')).map(cb => cb.value);
+    const cmd = document.getElementById('config-command').value;
+
     const config = {
-        command: document.getElementById('config-command').value,
+        command: cmd,
         workers: parseInt(document.getElementById('config-workers').value),
         files: selectedFiles,
         night: document.getElementById('config-night').checked,
+        gpu: document.getElementById('config-gpu').checked,
+        bloom: document.getElementById('config-bloom').checked,
+        batch_size: parseInt(document.getElementById('config-batch-size').value),
         telegram_token: document.getElementById('config-tg-token').value || null,
         telegram_channel: document.getElementById('config-tg-channel').value || null
     };
+
+    if (cmd === 'brainforce') {
+        config.pass_length = parseInt(document.getElementById('config-pass-length').value);
+        config.pass_alphabet = Array.from(document.getElementById('config-pass-alphabet').selectedOptions).map(o => o.value);
+        config.pass_shuffle = parseInt(document.getElementById('config-pass-shuffle').value);
+    } else if (cmd === 'wordlist') {
+        config.pass_file = document.getElementById('config-pass-file').value;
+    }
 
     const result = await apiCall('/api/start', 'POST', config);
     if (result) {
@@ -134,6 +182,12 @@ async function stopScanner() {
 
 function clearLogs() {
     document.getElementById('logs-container').innerHTML = '';
+}
+
+function toggleCommandOptions() {
+    const cmd = document.getElementById('config-command').value;
+    document.getElementById('brainforce-options').classList.toggle('hidden', cmd !== 'brainforce');
+    document.getElementById('wordlist-options').classList.toggle('hidden', cmd !== 'wordlist');
 }
 
 // Initial loads

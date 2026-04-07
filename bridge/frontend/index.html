@@ -36,8 +36,19 @@
             </div>
         </header>
 
-        <!-- API Key Setup -->
-        <div id="auth-section" class="card p-6 mb-8">
+        <!-- Login Section -->
+        <div id="login-section" class="card p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-white">Login</h2>
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="username-input" placeholder="Username" class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="password" id="password-input" placeholder="Password" class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="login()" class="btn-primary text-white font-medium px-6 py-2 rounded-lg">Sign In</button>
+            </div>
+            <p class="text-xs text-slate-500 mt-2">Default: admin / password1234#</p>
+        </div>
+
+        <!-- API Key Setup (Hidden after login) -->
+        <div id="auth-section" class="card p-6 mb-8 hidden">
             <h2 class="text-xl font-semibold mb-4 text-white">Authentication</h2>
             <div class="flex flex-col md:flex-row gap-4">
                 <input type="password" id="api-key-input" placeholder="Enter API Key" class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 flex-grow focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -54,9 +65,10 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-400 mb-1">Command</label>
-                            <select id="config-command" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white">
+                            <select id="config-command" onchange="toggleCommandOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white">
                                 <option value="bruteforce">Bruteforce</option>
                                 <option value="brainforce">Brainforce</option>
+                                <option value="wordlist">Wordlist</option>
                             </select>
                         </div>
                         <div>
@@ -70,9 +82,61 @@
                                 <p class="text-slate-500 text-xs italic p-2">Loading files...</p>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <input type="checkbox" id="config-night" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-blue-500">
-                            <label for="config-night" class="text-sm font-medium text-slate-400">Night Mode (Low Priority)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="config-night" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-blue-500">
+                                <label for="config-night" class="text-sm font-medium text-slate-400">Night</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="config-gpu" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-blue-500">
+                                <label for="config-gpu" class="text-sm font-medium text-slate-400">GPU</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="config-bloom" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-blue-500">
+                                <label for="config-bloom" class="text-sm font-medium text-slate-400">Bloom</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="config-poll" checked class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-500 focus:ring-blue-500">
+                                <label for="config-poll" class="text-sm font-medium text-slate-400">Poll Logs</label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">Batch Size</label>
+                            <input type="number" id="config-batch-size" value="1024" min="1" step="1024" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white">
+                        </div>
+
+                        <!-- Brainforce specific -->
+                        <div id="brainforce-options" class="hidden space-y-4 pt-2 border-t border-slate-700">
+                            <h3 class="text-xs font-semibold text-slate-500 uppercase">Brainforce Options</h3>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Password Length</label>
+                                <input type="number" id="config-pass-length" value="5" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Alphabet</label>
+                                <select id="config-pass-alphabet" multiple class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white h-24 text-xs">
+                                    <option value="english-lower" selected>English Lower</option>
+                                    <option value="english-upper">English Upper</option>
+                                    <option value="digits">Digits</option>
+                                    <option value="symbols">Symbols</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Shuffle Seed (0 for off)</label>
+                                <input type="number" id="config-pass-shuffle" value="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white">
+                            </div>
+                        </div>
+
+                        <!-- Wordlist specific -->
+                        <div id="wordlist-options" class="hidden space-y-4 pt-2 border-t border-slate-700">
+                            <h3 class="text-xs font-semibold text-slate-500 uppercase">Wordlist Options</h3>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Select Wordlist</label>
+                                <select id="config-pass-file" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white text-xs">
+                                    <!-- Populated from file list -->
+                                </select>
+                            </div>
                         </div>
 
                         <hr class="border-slate-700 my-4">
